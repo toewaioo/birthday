@@ -26,12 +26,15 @@ export const GiftBox = ({ onOpen, isOpened }: GiftBoxProps) => {
       0.1,
       1000
     );
-    const renderer = new THREE.WebGLRenderer({ 
-      alpha: true, 
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
       antialias: true,
-      powerPreference: "high-performance"
+      powerPreference: "high-performance",
     });
-    renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+    renderer.setSize(
+      mountRef.current.clientWidth,
+      mountRef.current.clientHeight
+    );
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     mountRef.current.appendChild(renderer.domElement);
 
@@ -120,16 +123,14 @@ export const GiftBox = ({ onOpen, isOpened }: GiftBoxProps) => {
 
       // Bow tails
       const bowTailGeometry = new THREE.PlaneGeometry(0.8, 0.3);
-      const bowTailMaterial = new THREE.MeshPhongMaterial({
-        ...ribbonMaterial,
-        side: THREE.DoubleSide
-      });
+      const bowTailMaterial = ribbonMaterial.clone();
+      bowTailMaterial.side = THREE.DoubleSide;
 
       for (let i = 0; i < 2; i++) {
         const bowTail = new THREE.Mesh(bowTailGeometry, bowTailMaterial);
         bowTail.position.y = -0.8;
         bowTail.position.x = i === 0 ? -0.4 : 0.4;
-        bowTail.rotation.z = Math.PI / 8 * (i === 0 ? 1 : -1);
+        bowTail.rotation.z = (Math.PI / 8) * (i === 0 ? 1 : -1);
         bowGroup.add(bowTail);
       }
 
@@ -167,19 +168,23 @@ export const GiftBox = ({ onOpen, isOpened }: GiftBoxProps) => {
         positions[i3 + 2] = radius * Math.cos(phi);
 
         // Random colors from palette
-        const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
-        colors[i3] = color.r;
-        colors[i3 + 1] = color.g;
-        colors[i3 + 2] = color.b;
+        const color =
+          colorPalette[Math.floor(Math.random() * colorPalette.length)];
+        colors[i3] = color!.r;
+        colors[i3 + 1] = color!.g;
+        colors[i3 + 2] = color!.b;
 
         // Random sizes
         sizes[i] = Math.random() * 0.1 + 0.02;
       }
 
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-      geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+      geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3)
+      );
+      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+      geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
 
       const material = new THREE.PointsMaterial({
         size: 0.1,
@@ -232,23 +237,39 @@ export const GiftBox = ({ onOpen, isOpened }: GiftBoxProps) => {
 
         const hoverScale = 1 + Math.sin(time * 8) * 0.05 * hoverPulse;
         const baseScale = 1 + hoverPulse * 0.1;
-        
-        box.scale.lerp(new THREE.Vector3(baseScale * hoverScale, baseScale * hoverScale, baseScale * hoverScale), 0.1);
-        lid.scale.lerp(new THREE.Vector3(baseScale * hoverScale, baseScale * hoverScale, baseScale * hoverScale), 0.1);
+
+        box.scale.lerp(
+          new THREE.Vector3(
+            baseScale * hoverScale,
+            baseScale * hoverScale,
+            baseScale * hoverScale
+          ),
+          0.1
+        );
+        lid.scale.lerp(
+          new THREE.Vector3(
+            baseScale * hoverScale,
+            baseScale * hoverScale,
+            baseScale * hoverScale
+          ),
+          0.1
+        );
       } else {
         // Enhanced opening animation with bounce
         if (animationProgress < 1) {
           animationProgress += 0.03;
           const progress = animationProgress;
-          
+
           // Lid flies up with rotation
-          lid.position.y = 1.2 + progress * 3 + Math.sin(progress * Math.PI) * 0.5;
+          lid.position.y =
+            1.2 + progress * 3 + Math.sin(progress * Math.PI) * 0.5;
           lid.rotation.x = progress * Math.PI * 0.5;
-          
+
           // Bow jumps and follows lid
-          bow.position.y = 1.7 + progress * 3 + Math.sin(progress * Math.PI * 2) * 0.3;
+          bow.position.y =
+            1.7 + progress * 3 + Math.sin(progress * Math.PI * 2) * 0.3;
           bow.rotation.x = progress * Math.PI * 0.3;
-          
+
           // Box settles down
           box.position.y = -progress * 0.2;
         }
@@ -257,14 +278,15 @@ export const GiftBox = ({ onOpen, isOpened }: GiftBoxProps) => {
       // Animate particles with sparkling effect
       particles.rotation.y += 0.001;
       particles.rotation.x += 0.0005;
-      
-      const positions = particles.geometry.attributes.position.array as Float32Array;
+
+      const positions = particles.geometry.attributes.position!
+        .array as Float32Array;
       for (let i = 0; i < positions.length; i += 3) {
         // Gentle particle movement
-        positions[i] += Math.sin(time + i) * 0.002;
-        positions[i + 1] += Math.cos(time + i * 0.5) * 0.002;
+        positions[i]! += Math.sin(time + i) * 0.002;
+        positions[i + 1]! += Math.cos(time + i * 0.5) * 0.002;
       }
-      particles.geometry.attributes.position.needsUpdate = true;
+      particles.geometry.attributes.position!.needsUpdate = true;
 
       // Gentle camera movement
       camera.position.x = Math.sin(time * 0.2) * 0.5;
@@ -279,15 +301,19 @@ export const GiftBox = ({ onOpen, isOpened }: GiftBoxProps) => {
     // Handle resize
     const handleResize = () => {
       if (!mountRef.current) return;
-      camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
+      camera.aspect =
+        mountRef.current.clientWidth / mountRef.current.clientHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+      renderer.setSize(
+        mountRef.current.clientWidth,
+        mountRef.current.clientHeight
+      );
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       if (mountRef.current) {
         mountRef.current.removeChild(renderer.domElement);
       }
@@ -302,8 +328,9 @@ export const GiftBox = ({ onOpen, isOpened }: GiftBoxProps) => {
       onClick={onOpen}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      style={{ 
-        background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
+      style={{
+        background:
+          "linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)",
       }}
     />
   );

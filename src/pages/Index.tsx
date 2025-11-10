@@ -5,14 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Gift, ArrowDown, Clock, Play, Pause, Volume2 } from "lucide-react";
 
 const Index = () => {
+  type Time = {
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+  };
   const [isGiftOpened, setIsGiftOpened] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const [canOpenGift, setCanOpenGift] = useState(false);
-  const [timeLeft, setTimeLeft] = useState({});
+  const [timeLeft, setTimeLeft] = useState<Time>({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
   const [showCountdown, setShowCountdown] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showMusicButton, setShowMusicButton] = useState(false);
-  const audioRef = useRef(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const photos = [
     "images/couple.jpeg",

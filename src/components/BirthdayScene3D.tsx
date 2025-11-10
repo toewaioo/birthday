@@ -472,7 +472,7 @@ export const BirthdayScene3D = ({
 
         // Photo
         const loader = new THREE.TextureLoader();
-        loader.load(photos[i], (texture) => {
+        loader.load(photos[i]!, (texture) => {
           // Photo border
           const borderGeometry = new THREE.PlaneGeometry(1.5, 1.9);
           const borderMaterial = new THREE.MeshStandardMaterial({
@@ -666,8 +666,8 @@ export const BirthdayScene3D = ({
         (Math.random() - 0.5) * 25,
         Math.random() * 8 + 4,
         (Math.random() - 0.5) * 25,
-        color,
-        text
+        color!,
+        text!
       );
 
       scene.add(balloon);
@@ -680,7 +680,7 @@ export const BirthdayScene3D = ({
       12,
       -8,
       0xff6b9d,
-      birthdayName.split(" ")[0] // Use first word to fit on balloon
+      birthdayName.split(" ")[0]! // Use first word to fit on balloon
     );
     scene.add(specialBalloon);
     balloons.push(specialBalloon);
@@ -750,7 +750,7 @@ export const BirthdayScene3D = ({
 
     wallBalloonPositions.forEach(([x, y, z], index) => {
       const color = balloonColors[index % balloonColors.length];
-      const balloon = createBalloonWithText(x, y, z, color, "🎉");
+      const balloon = createBalloonWithText(x, y, z, color!, "🎉");
       scene.add(balloon);
       wallBalloons.push(balloon);
     });
