@@ -194,7 +194,7 @@ const Index = () => {
             </div>
 
             <p className="text-lg text-muted-foreground mt-8">
-              Available on November 11, 2025
+              Available on November 23, 2025
             </p>
           </div>
         </div>
