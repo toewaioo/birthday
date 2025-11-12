@@ -14,6 +14,7 @@ const Index = () => {
   const [isGiftOpened, setIsGiftOpened] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const [canOpenGift, setCanOpenGift] = useState(false);
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [timeLeft, setTimeLeft] = useState<Time>({
     days: 0,
     hours: 0,
@@ -26,19 +27,39 @@ const Index = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const photos = [
-    "images/couple.jpeg",
-    "images/couple.jpeg",
-    "images/couple.jpeg",
+    "images/photo_01.jpg",
+    "images/photo_02.jpg",
+    "images/photo_03.jpg",
+    "images/photo_04.jpg",
+    "images/photo_05.jpg",
+    "images/photo_06.jpg",
   ];
 
   // Target date: November 11, 2025
-  const targetDate = new Date("2025-11-23T00:00:00").getTime();
-
-  // Birthday song URL - replace with your actual birthday song
-  const birthdaySong = "/musics/happy-birthday.mp3"; // or use a public URL
-
   useEffect(() => {
+    function getSpecialDate(): Date {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+
+      // Target date of current year (Nov 23, 00:00:00)
+      const target = new Date(currentYear, 10, 23, 0, 0, 0);
+
+      // One week after target date
+      const weekAfter = new Date(target);
+      weekAfter.setDate(target.getDate() + 7);
+
+      // If within Nov 23–30 inclusive
+      if (now >= target && now <= weekAfter) return target;
+
+      // If before Nov 23
+      if (now < target) return target;
+
+      // Otherwise (after Nov 30)
+      return new Date(currentYear + 1, 10, 23, 0, 0, 0);
+    }
+
     const checkDate = () => {
+      const targetDate = getSpecialDate().getTime();
       const now = new Date().getTime();
       const distance = targetDate - now;
 
@@ -67,8 +88,10 @@ const Index = () => {
 
   // Initialize audio
   useEffect(() => {
-    audioRef.current = new Audio(birthdaySong);
+    audioRef.current = new Audio("/musics/happy-birthday.mp3");
+    audioRef.current.preload = "auto";
     audioRef.current.loop = true;
+    setAudio(audioRef.current);
 
     return () => {
       if (audioRef.current) {
@@ -141,7 +164,7 @@ const Index = () => {
 
       {/* Audio element for better mobile handling */}
       <audio preload="auto" loop style={{ display: "none" }}>
-        <source src={birthdaySong} type="audio/mpeg" />
+        <source src={""} type="audio/mpeg" />
         Your browser does not support the audio element.
       </audio>
 
@@ -194,7 +217,7 @@ const Index = () => {
             </div>
 
             <p className="text-lg text-muted-foreground mt-8">
-              Available on November 23, 2025
+              Available on November 23, {new Date().getFullYear()}
             </p>
           </div>
         </div>
@@ -206,7 +229,7 @@ const Index = () => {
           <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
             <div className="text-center space-y-6 px-6 animate-fade-in">
               <Gift className="w-16 h-16 mx-auto text-primary animate-float" />
-              <h1 className="text-cyan-400 text-5xl md:text-7xl font-bold text-foreground">
+              <h1 className="text-blue-400 text-5xl md:text-7xl font-bold text-foreground">
                 Yadanar Oo
               </h1>
               <p className="text-teal-500 text-xl md:text-2xl text-muted-foreground max-w-md">
