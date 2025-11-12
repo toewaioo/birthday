@@ -261,7 +261,7 @@ const Index = () => {
         <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
           <div className="text-center space-y-6 px-6">
             <Gift className="w-16 h-16 mx-auto text-primary" />
-            <h1 className="text-5xl md:text-7xl font-bold text-foreground">
+            <h1 className="text-blue-400 text-5xl md:text-7xl font-bold text-foreground">
               Yadanar Oo
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground max-w-md">
