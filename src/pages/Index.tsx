@@ -164,7 +164,7 @@ const Index = () => {
 
       {/* Audio element for better mobile handling */}
       <audio preload="auto" loop style={{ display: "none" }}>
-        <source src={""} type="audio/mpeg" />
+        <source src={"/musics/happy-birthday.mp3"} type="audio/mpeg" />
         Your browser does not support the audio element.
       </audio>
 
