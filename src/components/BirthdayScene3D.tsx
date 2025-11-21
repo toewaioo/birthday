@@ -1336,7 +1336,7 @@ export const BirthdayScene3D = ({
     const createConfetti = () => {
       const confettiGroup = new THREE.Group();
 
-      for (let i = 0; i < 200; i++) {
+      for (let i = 0; i < 450; i++) {
         const size = Math.random() * 0.3 + 0.09;
         const geometry = new THREE.PlaneGeometry(size, size * 0.3);
         const material = new THREE.MeshStandardMaterial({
@@ -1417,13 +1417,7 @@ export const BirthdayScene3D = ({
       });
       confettiActive = false;
     };
-    const reBuildConfetti = () => {
-      const confettiSystem = createConfetti();
-      scene.add(confettiSystem);
-
-      let confettiActive = false;
-      let confettiStartTime = 0;
-    };
+  
 
     // Function to blow out candle
     const blowOutCandle = (candleIndex: number) => {
@@ -1577,8 +1571,8 @@ export const BirthdayScene3D = ({
           blowOutCandle(index);
         }
       });
-      reBuildConfetti();
-      startConfetti();
+  
+      //startConfetti();
     };
 
     // Touch event for mobile click
@@ -1685,7 +1679,7 @@ export const BirthdayScene3D = ({
           confetti.rotation.z += (confetti as any).rotationSpeed.z;
 
           // Add gravity
-          (confetti as any).velocity.y -= 0.001;
+          (confetti as any).velocity.y -= 0.0008;
 
           // Check if confetti is still moving
           if (confetti.position.y > -2) {
