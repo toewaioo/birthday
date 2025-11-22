@@ -81,7 +81,7 @@ export const BirthdayMessage = () => {
             </div>
 
             <p className="text-sm sm:text-base leading-relaxed">
-              အမြဲတမ်း "လေပေါ" သမျှကို နားထောင်ပေးမယ့်
+              အမြဲတမ်း ပြော သမျှကို နားထောင်ပေးမယ့်
               <span className="font-bold text-indigo-600 mx-1">Bro</span>
               တစ်ယောက် အမြဲရှိနေမယ်ဆိုတာ မမေ့နဲ့နော်။ ✌️
             </p>
@@ -95,7 +95,7 @@ export const BirthdayMessage = () => {
         {/* Footer */}
         <div className="mt-8 pt-4 border-t border-white/40 text-center">
           <p className="text-xs sm:text-sm text-gray-500 font-medium">
-            With lots of love from{" "}
+            Made with 💙 by{" "}
             <span className="text-pink-500">Toewaioo</span>
           </p>
         </div>

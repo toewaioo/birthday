@@ -2,6 +2,9 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useState } from "react";
 import { BirthdayMessage } from "./BirthdayMessage";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
 interface BirthdayScene3DProps {
   photos: string[];
@@ -36,6 +39,9 @@ export const BirthdayScene3D = ({
     // Scene setup with more appealing background
     const scene = new THREE.Scene();
     sceneRef.current = scene;
+
+    // Add Fog for depth and atmosphere
+    // scene.fog = new THREE.FogExp2(0xffebf3, 0.015);
 
     // Gradient background
     const canvas = document.createElement("canvas");
@@ -73,6 +79,23 @@ export const BirthdayScene3D = ({
     renderer.toneMappingExposure = 1.2;
     mountRef.current.appendChild(renderer.domElement);
 
+    // Post-processing Setup
+    const renderScene = new RenderPass(scene, camera);
+
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      1.5,
+      0.4,
+      0.85
+    );
+    bloomPass.threshold = 0.2; // Lower threshold to make more things glow
+    bloomPass.strength = 0.4; // Intensity of the glow
+    bloomPass.radius = 0.5; // Radius of the glow
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(renderScene);
+    composer.addPass(bloomPass);
+
     // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
@@ -94,6 +117,7 @@ export const BirthdayScene3D = ({
 
     // Improved Floor with subtle pattern
     const floorGeometry = new THREE.PlaneGeometry(40, 40);
+    // Reuse floor material
     const floorMaterial = new THREE.MeshStandardMaterial({
       color: 0xf8f0f0,
       roughness: 0.7,
@@ -105,6 +129,14 @@ export const BirthdayScene3D = ({
     floor.receiveShadow = true;
     scene.add(floor);
 
+    // Reuse wall material
+    const wallMaterial = new THREE.MeshStandardMaterial({
+      color: 0xfff5f5,
+      roughness: 0.8,
+      metalness: 0.1,
+      side: THREE.DoubleSide,
+    });
+
     // Create Walls
     const createWall = (
       width: number,
@@ -113,12 +145,6 @@ export const BirthdayScene3D = ({
       rotation: [number, number, number]
     ) => {
       const wallGeometry = new THREE.PlaneGeometry(width, height);
-      const wallMaterial = new THREE.MeshStandardMaterial({
-        color: 0xfff5f5,
-        roughness: 0.8,
-        metalness: 0.1,
-        side: THREE.DoubleSide,
-      });
       const wall = new THREE.Mesh(wallGeometry, wallMaterial);
       wall.position.set(...position);
       wall.rotation.set(...rotation);
@@ -230,29 +256,37 @@ export const BirthdayScene3D = ({
     cakeGroup.add(createFrosting(1.75, 2.7));
     cakeGroup.add(createFrosting(1.25, 3.6));
 
+    // Optimized Strawberry Resources
+    const strawberryBodyGeo = new THREE.SphereGeometry(0.15, 16, 16);
+    const strawberryBodyMat = new THREE.MeshStandardMaterial({
+      color: 0xff4444,
+      roughness: 0.4,
+    });
+    const strawberrySeedGeo = new THREE.SphereGeometry(0.01, 6, 6);
+    const strawberrySeedMat = new THREE.MeshStandardMaterial({
+      color: 0xffeb3b,
+    });
+    const strawberryLeafGeo = new THREE.ConeGeometry(0.08, 0.1, 6);
+    const strawberryLeafMat = new THREE.MeshStandardMaterial({
+      color: 0x32cd32,
+      roughness: 0.7,
+    });
+
     // Enhanced Strawberry function
     const createStrawberry = (x: number, y: number, z: number, scale = 1) => {
       const group = new THREE.Group();
 
       // Strawberry body
-      const berryGeometry = new THREE.SphereGeometry(0.15 * scale, 16, 16);
-      const berryMaterial = new THREE.MeshStandardMaterial({
-        color: 0xff4444,
-        roughness: 0.4,
-      });
-      const berry = new THREE.Mesh(berryGeometry, berryMaterial);
+      const berry = new THREE.Mesh(strawberryBodyGeo, strawberryBodyMat);
       berry.scale.set(1, 1.3, 1);
       berry.castShadow = true;
       group.add(berry);
 
       // Seeds
-      const seedGeometry = new THREE.SphereGeometry(0.01 * scale, 6, 6);
-      const seedMaterial = new THREE.MeshStandardMaterial({ color: 0xffeb3b });
-
       for (let i = 0; i < 12; i++) {
-        const seed = new THREE.Mesh(seedGeometry, seedMaterial);
+        const seed = new THREE.Mesh(strawberrySeedGeo, strawberrySeedMat);
         const angle = (i / 12) * Math.PI * 2;
-        const radius = 0.12 * scale;
+        const radius = 0.12;
         seed.position.set(
           Math.cos(angle) * radius,
           Math.sin(angle) * radius * 0.5,
@@ -262,17 +296,13 @@ export const BirthdayScene3D = ({
       }
 
       // Leaf
-      const leafGeometry = new THREE.ConeGeometry(0.08 * scale, 0.1 * scale, 6);
-      const leafMaterial = new THREE.MeshStandardMaterial({
-        color: 0x32cd32,
-        roughness: 0.7,
-      });
-      const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
-      leaf.position.y = 0.18 * scale;
+      const leaf = new THREE.Mesh(strawberryLeafGeo, strawberryLeafMat);
+      leaf.position.y = 0.18;
       leaf.rotation.x = Math.PI;
       group.add(leaf);
 
       group.position.set(x, y, z);
+      group.scale.setScalar(scale);
       return group;
     };
 
@@ -1326,65 +1356,72 @@ export const BirthdayScene3D = ({
     envelope.rotation.y = Math.PI / 3;
     scene.add(envelope);
 
-    // Confetti System - Improved with cleanup
-    const confettiParticles: THREE.Mesh[] = [];
+    // Confetti System - Optimized with InstancedMesh
+    const confettiCount = 450;
+    const confettiGeometry = new THREE.PlaneGeometry(0.15, 0.05); // Base size, will scale
+    const confettiMaterial = new THREE.MeshStandardMaterial({
+      color: 0xffffff, // Base color, will be tinted by instance color
+      side: THREE.DoubleSide,
+      roughness: 0.3,
+      metalness: 0.2,
+    });
+
+    const confettiMesh = new THREE.InstancedMesh(
+      confettiGeometry,
+      confettiMaterial,
+      confettiCount
+    );
+    confettiMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    scene.add(confettiMesh);
+
     const confettiColors = [
       0xff6b6b, 0x4ecdc4, 0xfeca57, 0xff9ff3, 0x54a0ff, 0x5f27cd, 0x00d2d3,
       0xff9ff3,
     ];
 
-    const createConfetti = () => {
-      const confettiGroup = new THREE.Group();
+    interface ConfettiData {
+      position: THREE.Vector3;
+      rotation: THREE.Euler;
+      scale: THREE.Vector3;
+      velocity: { x: number; y: number; z: number };
+      rotationSpeed: { x: number; y: number; z: number };
+    }
 
-      for (let i = 0; i < 450; i++) {
-        const size = Math.random() * 0.3 + 0.09;
-        const geometry = new THREE.PlaneGeometry(size, size * 0.3);
-        const material = new THREE.MeshStandardMaterial({
-          color:
-            confettiColors[Math.floor(Math.random() * confettiColors.length)],
-          side: THREE.DoubleSide,
-          roughness: 0.3,
-          metalness: 0.2,
-        });
+    const confettiData: ConfettiData[] = [];
+    const dummy = new THREE.Object3D();
 
-        const confetti = new THREE.Mesh(geometry, material);
+    // Initialize confetti data
+    for (let i = 0; i < confettiCount; i++) {
+      const color = new THREE.Color(
+        confettiColors[Math.floor(Math.random() * confettiColors.length)]
+      );
+      confettiMesh.setColorAt(i, color);
 
-        // Random starting position above the scene
-        confetti.position.set(
+      confettiData.push({
+        position: new THREE.Vector3(
           (Math.random() - 0.5) * 20,
           15 + Math.random() * 10,
           (Math.random() - 0.5) * 20
-        );
-
-        // Random rotation
-        confetti.rotation.set(
+        ),
+        rotation: new THREE.Euler(
           Math.random() * Math.PI,
           Math.random() * Math.PI,
           Math.random() * Math.PI
-        );
-
-        // Store velocity and rotation speed
-        (confetti as any).velocity = {
+        ),
+        scale: new THREE.Vector3(1 + Math.random(), 1 + Math.random(), 1),
+        velocity: {
           x: (Math.random() - 0.5) * 0.2,
           y: -0.05 - Math.random() * 0.5,
           z: (Math.random() - 0.5) * 0.2,
-        };
-
-        (confetti as any).rotationSpeed = {
-          x: (Math.random() - 0.5) * 0.05,
-          y: (Math.random() - 0.5) * 0.05,
-          z: (Math.random() - 0.5) * 0.05,
-        };
-
-        confettiGroup.add(confetti);
-        confettiParticles.push(confetti);
-      }
-
-      return confettiGroup;
-    };
-
-    const confettiSystem = createConfetti();
-    scene.add(confettiSystem);
+        },
+        rotationSpeed: {
+          x: (Math.random() - 0.5) * 0.1,
+          y: (Math.random() - 0.5) * 0.1,
+          z: (Math.random() - 0.5) * 0.1,
+        },
+      });
+    }
+    confettiMesh.instanceColor!.needsUpdate = true; // Important!
 
     let confettiActive = false;
     let confettiStartTime = 0;
@@ -1393,31 +1430,38 @@ export const BirthdayScene3D = ({
     const startConfetti = () => {
       confettiActive = true;
       confettiStartTime = Date.now();
+      confettiMesh.visible = true;
 
       // Reset confetti positions
-      confettiParticles.forEach((confetti) => {
-        confetti.position.set(
+      confettiData.forEach((data, i) => {
+        data.position.set(
           (Math.random() - 0.5) * 20,
           15 + Math.random() * 10,
           (Math.random() - 0.5) * 20
         );
-
-        (confetti as any).velocity = {
-          x: (Math.random() - 0.5) * 0.02,
-          y: -0.05 - Math.random() * 0.05,
-          z: (Math.random() - 0.5) * 0.02,
+        data.velocity = {
+          x: (Math.random() - 0.5) * 0.05,
+          y: -0.05 - Math.random() * 0.1,
+          z: (Math.random() - 0.5) * 0.05,
         };
+
+        dummy.position.copy(data.position);
+        dummy.rotation.copy(data.rotation);
+        dummy.scale.copy(data.scale);
+        dummy.updateMatrix();
+        confettiMesh.setMatrixAt(i, dummy.matrix);
       });
+      confettiMesh.instanceMatrix.needsUpdate = true;
     };
 
     // Function to remove confetti after animation
     const cleanupConfetti = () => {
-      confettiParticles.forEach((confetti) => {
-        confetti.visible = false;
-      });
+      confettiMesh.visible = false;
       confettiActive = false;
     };
-  
+
+    // Initially hide
+    confettiMesh.visible = false;
 
     // Function to blow out candle
     const blowOutCandle = (candleIndex: number) => {
@@ -1571,7 +1615,7 @@ export const BirthdayScene3D = ({
           blowOutCandle(index);
         }
       });
-  
+
       //startConfetti();
     };
 
@@ -1663,37 +1707,46 @@ export const BirthdayScene3D = ({
       envelope.position.y = 0.5 + Math.sin(envelopeTime) * 0.05;
       envelope.rotation.y = Math.PI / 6 + Math.sin(envelopeTime * 0.5) * 0.1;
 
-      // Animate confetti - FIXED: Properly update confetti particles
+      // Animate confetti - Optimized
       if (confettiActive) {
         let allConfettiStopped = true;
 
-        confettiParticles.forEach((confetti) => {
+        confettiData.forEach((data, i) => {
           // Update position
-          confetti.position.x += (confetti as any).velocity.x;
-          confetti.position.y += (confetti as any).velocity.y;
-          confetti.position.z += (confetti as any).velocity.z;
+          data.position.x += data.velocity.x;
+          data.position.y += data.velocity.y;
+          data.position.z += data.velocity.z;
 
           // Update rotation
-          confetti.rotation.x += (confetti as any).rotationSpeed.x;
-          confetti.rotation.y += (confetti as any).rotationSpeed.y;
-          confetti.rotation.z += (confetti as any).rotationSpeed.z;
+          data.rotation.x += data.rotationSpeed.x;
+          data.rotation.y += data.rotationSpeed.y;
+          data.rotation.z += data.rotationSpeed.z;
 
           // Add gravity
-          (confetti as any).velocity.y -= 0.0008;
+          data.velocity.y -= 0.0008;
 
           // Check if confetti is still moving
-          if (confetti.position.y > -2) {
+          if (data.position.y > -2) {
             allConfettiStopped = false;
           }
 
           // Reset if below floor
-          if (confetti.position.y < -3) {
-            confetti.position.y = -3;
-            (confetti as any).velocity.y = 0;
-            (confetti as any).velocity.x = 0;
-            (confetti as any).velocity.z = 0;
+          if (data.position.y < -3) {
+            data.position.y = -3;
+            data.velocity.y = 0;
+            data.velocity.x = 0;
+            data.velocity.z = 0;
           }
+
+          // Update matrix
+          dummy.position.copy(data.position);
+          dummy.rotation.copy(data.rotation);
+          dummy.scale.copy(data.scale);
+          dummy.updateMatrix();
+          confettiMesh.setMatrixAt(i, dummy.matrix);
         });
+
+        confettiMesh.instanceMatrix.needsUpdate = true;
 
         // Clean up confetti after all particles have settled
         if (Date.now() - confettiStartTime > 6000 && allConfettiStopped) {
@@ -1701,10 +1754,37 @@ export const BirthdayScene3D = ({
         }
       }
 
-      // Animate particles
+      // Animate particles with floating effect
       particlesMesh.rotation.y += 0.001;
 
-      renderer.render(scene, camera);
+      // Safely access geometry & position attribute
+      const posAttr = particlesMesh.geometry?.attributes?.position as
+        | THREE.BufferAttribute
+        | undefined;
+
+      if (!posAttr) {
+        console.warn("Position attribute not found");
+        return;
+      }
+
+      if (posAttr.array instanceof Float32Array) {
+        const positions = posAttr.array;
+
+        for (let i = 0; i < positions.length; i += 3) {
+          const yIndex = i + 1;
+          if (yIndex < positions.length) {
+            const py = positions[yIndex]!;
+            const px = positions[i]!;
+
+            positions[yIndex] = py + Math.sin(Date.now() * 0.001 + px) * 0.002;
+          }
+        }
+
+        posAttr.needsUpdate = true;
+      }
+
+      // Use composer for rendering instead of renderer
+      composer.render();
       requestAnimationFrame(animate);
     };
     startConfetti();
@@ -1718,6 +1798,10 @@ export const BirthdayScene3D = ({
         mountRef.current.clientWidth / mountRef.current.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(
+        mountRef.current.clientWidth,
+        mountRef.current.clientHeight
+      );
+      composer.setSize(
         mountRef.current.clientWidth,
         mountRef.current.clientHeight
       );
